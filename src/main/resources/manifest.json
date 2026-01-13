@@ -1,14 +1,14 @@
 {
-    "Group": "Example",
-    "Name": "ExamplePlugin",
+    "Group": "Quarri6343",
+    "Name": "HWaila",
     "Version": "0.0.2",
-    "Description": "An example plugin for HyTale!",
+    "Description": "Waila for Hytale",
     "Authors": [
         {
-            "Name": "It's you!"
+            "Name": "Quarri6343"
         }
     ],
-    "Website": "example.org",
+    "Website": "com.quarri6343",
     "ServerVersion": "*",
     "Dependencies": {
         
@@ -17,6 +17,6 @@
         
     },
     "DisabledByDefault": false,
-    "Main": "org.example.plugin.ExamplePlugin",
+    "Main": "com.quarri6343.hwaila.HWaila",
     "IncludesAssetPack": true
 }
