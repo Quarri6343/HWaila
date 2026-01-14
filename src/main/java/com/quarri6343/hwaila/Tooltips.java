@@ -17,8 +17,7 @@ public class Tooltips extends CustomUIHud {
     public void update(boolean clear, @Nonnull UICommandBuilder commandBuilder) {
         String itemID = component.getItemId();
         if (itemID == null) {
-            HWaila.getInstance().getLogger().atInfo().log("itemID == null");
-            return; //TODO: hide hud
+            return;
         }
 
         commandBuilder.append("Pages/Tooltips.ui");

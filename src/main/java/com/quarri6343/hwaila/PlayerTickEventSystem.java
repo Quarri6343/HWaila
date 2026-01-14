@@ -7,9 +7,12 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.math.vector.Vector3d;
+import com.hypixel.hytale.protocol.Vector3f;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
+import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.selector.RaycastSelector;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.selector.Selector;
@@ -38,14 +41,18 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk, @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
 
-        RaycastSelector selector = new RaycastSelector();
+        WailaRaycastSelector selector = new WailaRaycastSelector();
         Selector runtime = selector.newSelector();
         Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
 
-        runtime.tick(commandBuffer, playerRef, 0, 0);
+        ModelComponent playerModelComponent = store.getComponent(playerRef, ModelComponent.getComponentType());
+        if (playerModelComponent != null) {
+            float offset = playerModelComponent.getModel().getEyeHeight(playerRef, store);
+            //mismatch protocol v3d vs math v3d
+            selector.setOffset(new Vector3d(0, offset, 0));
+        }
 
-//        runtime.selectTargetEntities(commandBuffer, playerRef, (ref, hitPos) -> {
-//        }, e -> true);
+        runtime.tick(commandBuffer, playerRef, 0, 0);
 
         runtime.selectTargetBlocks(commandBuffer, playerRef, (x, y, z) -> {
             World world = commandBuffer.getExternalData().getWorld();
