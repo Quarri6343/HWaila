@@ -39,10 +39,25 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
 
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk, @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
+        WailaTargetComponent component = archetypeChunk.getComponent(index, componentType);
+        Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
+        Player playerComponent = store.getComponent(playerRef, Player.getComponentType());
+        assert playerComponent != null;
+        HudManager hudManager = playerComponent.getHudManager();
+
+        if (component == null) {
+            commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent(null, true));
+        }
+        if (!component.isEnabled()) {
+            component.setItemId(null);
+            if (hudManager.getCustomHud() instanceof Tooltips tooltips) {
+                tooltips.update(true, new UICommandBuilder(), component);
+            }
+            return;
+        }
 
         WailaRaycastSelector selector = new WailaRaycastSelector();
         Selector runtime = selector.newSelector();
-        Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
 
         ModelComponent playerModelComponent = store.getComponent(playerRef, ModelComponent.getComponentType());
         if (playerModelComponent != null) {
@@ -53,10 +68,6 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
 
         runtime.tick(commandBuffer, playerRef, 0, 0);
 
-        WailaTargetComponent component = archetypeChunk.getComponent(index, componentType);
-        if (component == null) {
-            commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent(null));
-        }
         final WailaTargetComponent oldComponent = ((WailaTargetComponent) component.clone());
         final WailaTargetComponent newComponent = component;
         component.setItemId(null);
@@ -75,13 +86,9 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
             }
         });
 
-        Player playerComponent = store.getComponent(playerRef, Player.getComponentType());
-        assert playerComponent != null;
-        HudManager hudManager = playerComponent.getHudManager();
         if (hudManager.getCustomHud() instanceof Tooltips tooltips
             && !Objects.equals(oldComponent.getItemId(), newComponent.getItemId())) {
             tooltips.update(true, new UICommandBuilder(), newComponent);
-            HWaila.getInstance().getLogger().atInfo().log(oldComponent.getItemId() + " / " + newComponent.getItemId());
         }
     }
 }

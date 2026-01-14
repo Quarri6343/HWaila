@@ -1,11 +1,13 @@
 package com.quarri6343.hwaila;
-import com.hypixel.hytale.common.plugin.PluginManifest;
 import com.hypixel.hytale.component.ComponentType;
+import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.server.core.modules.entity.EntityModule;
-import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
+import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
@@ -38,9 +40,22 @@ public class HWaila extends JavaPlugin {
     @Override
     protected void setup() {
         LOGGER.atInfo().log("Setting up plugin " + this.getName());
-        this.getCommandRegistry().registerCommand(new ShowTooltipsCommand(this.getName(), this.getManifest().getVersion().toString()));
+        this.getCommandRegistry().registerCommand(new ToggleTooltipsCommand(this.getName(), this.getManifest().getVersion().toString()));
 
-        wailaTargetComponentType = this.getEntityStoreRegistry().registerComponent(WailaTargetComponent.class, () -> new WailaTargetComponent(null));
+        wailaTargetComponentType = this.getEntityStoreRegistry().registerComponent(WailaTargetComponent.class, WailaTargetComponent::new);
         getEntityStoreRegistry().registerSystem(new PlayerTickEventSystem(wailaTargetComponentType));
+
+        getEventRegistry().registerGlobal(PlayerReadyEvent.class, event -> {
+            Ref<EntityStore> ref = event.getPlayerRef();
+
+            PlayerRef playerRef = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
+            Player player = ref.getStore().getComponent(ref, Player.getComponentType());
+            HudManager hudManager = player.getHudManager();
+            hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
+
+            if (ref.getStore().getComponent(ref, getWailaTargetComponentType()) == null) {
+                ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(null, true));
+            }
+        });
     }
 }

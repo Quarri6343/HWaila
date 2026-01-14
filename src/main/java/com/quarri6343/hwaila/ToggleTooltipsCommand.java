@@ -15,14 +15,16 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 
 /**
- * Show Test Waila Hud
+ * Toggle Test Waila Hud
  */
-public class ShowTooltipsCommand extends AbstractPlayerCommand {
+public class ToggleTooltipsCommand extends AbstractPlayerCommand {
 
+    @Nonnull
+    private final FlagArg showArg = this.withFlagArg("show", "show hud");
     @Nonnull
     private final FlagArg hideArg = this.withFlagArg("hide", "hide hud");
 
-    public ShowTooltipsCommand(String pluginName, String pluginVersion) {
+    public ToggleTooltipsCommand(String pluginName, String pluginVersion) {
         super("waila", "Show tooltips.");
         this.setPermissionGroup(GameMode.Adventure); // Allows the command to be used by anyone, not just OP
     }
@@ -31,12 +33,20 @@ public class ShowTooltipsCommand extends AbstractPlayerCommand {
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         Player playerComponent = store.getComponent(ref, Player.getComponentType());
         assert playerComponent != null;
+        WailaTargetComponent targetComponent = store.getComponent(ref, WailaTargetComponent.getComponentType());
+        assert targetComponent != null;
 
-        HudManager hudManager = playerComponent.getHudManager();
+        // the game crashes when you remove the hud through hudManager.resetHud(playerRef);
         if (this.hideArg.provided(context)) {
-            hudManager.resetHud(playerRef);
-        } else {
+            targetComponent.setEnabled(false);
+        } else if (this.showArg.provided(context)){
+            //in case other mod override the hud
+            HudManager hudManager = playerComponent.getHudManager();
             hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
+            targetComponent.setEnabled(true);
+        }
+        else {
+            targetComponent.setEnabled(!targetComponent.isEnabled());
         }
     }
 }

@@ -9,13 +9,19 @@ import javax.annotation.Nullable;
 public class WailaTargetComponent implements Component<EntityStore> {
 
     private @Nullable String itemId;
+    private boolean enabled = false;
 
     public static ComponentType<EntityStore, WailaTargetComponent> getComponentType() {
         return HWaila.getInstance().getWailaTargetComponentType();
     }
 
-    public WailaTargetComponent(@Nullable String itemId) {
+    public WailaTargetComponent(@Nullable String itemId, boolean enabled) {
         this.itemId = itemId;
+        this.enabled = enabled;
+    }
+
+    public WailaTargetComponent() {
+
     }
 
     @Nullable
@@ -27,8 +33,16 @@ public class WailaTargetComponent implements Component<EntityStore> {
         this.itemId = itemId;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @Override
     public Component<EntityStore> clone() {
-        return new WailaTargetComponent(this.itemId);
+        return new WailaTargetComponent(this.itemId, this.enabled);
     }
 }
