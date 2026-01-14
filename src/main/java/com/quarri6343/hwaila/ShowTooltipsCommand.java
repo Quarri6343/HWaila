@@ -36,7 +36,7 @@ public class ShowTooltipsCommand extends AbstractPlayerCommand {
 
         HudManager hudManager = playerComponent.getHudManager();
         if (this.hideArg.provided(context)) {
-            hudManager.setCustomHud(playerRef, null);
+            hudManager.resetHud(playerRef);
         } else {
             hudManager.setCustomHud(playerRef, new Tooltips(playerRef, wailaTargetComponent));
         }

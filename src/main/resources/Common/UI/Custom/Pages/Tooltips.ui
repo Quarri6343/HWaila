@@ -18,14 +18,14 @@ Group {
           Padding: (Left: 35, Right: 35);
         }
 
-        Label #Title {
+        Label #ItemNameLabel {
           Anchor: (Height: 32);
           Padding: (Left: 35, Right: 35);
           Style: (
             FontSize: 20,
             HorizontalAlignment: Center
           );
-          Text: "This is an item";
+          Text: "";
         }
       }
     }
