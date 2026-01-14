@@ -1,4 +1,5 @@
 package com.quarri6343.hwaila;
+
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
@@ -61,8 +62,7 @@ public class HWaila extends JavaPlugin {
             boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
             if (ref.getStore().getComponent(ref, getWailaTargetComponentType()) == null) {
                 ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(null, isTooltipEnabled));
-            }
-            else {
+            } else {
                 ref.getStore().getComponent(ref, getWailaTargetComponentType()).setEnabled(isTooltipEnabled);
             }
         });

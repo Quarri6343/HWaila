@@ -87,7 +87,7 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
         });
 
         if (hudManager.getCustomHud() instanceof Tooltips tooltips
-            && !Objects.equals(oldComponent.getItemId(), newComponent.getItemId())) {
+                && !Objects.equals(oldComponent.getItemId(), newComponent.getItemId())) {
             tooltips.update(true, new UICommandBuilder(), newComponent);
         }
     }

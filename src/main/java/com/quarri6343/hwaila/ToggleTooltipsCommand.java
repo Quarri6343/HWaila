@@ -40,21 +40,19 @@ public class ToggleTooltipsCommand extends AbstractPlayerCommand {
         // the game crashes when you remove the hud through hudManager.resetHud(playerRef);
         if (this.hideArg.provided(context)) {
             targetComponent.setEnabled(false);
-        } else if (this.showArg.provided(context)){
+        } else if (this.showArg.provided(context)) {
             //in case other mod override the hud
             HudManager hudManager = playerComponent.getHudManager();
             hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
             targetComponent.setEnabled(true);
-        }
-        else {
+        } else {
             targetComponent.setEnabled(!targetComponent.isEnabled());
         }
 
         Config<WailaConfig> config = HWaila.getInstance().getConfig();
-        if(targetComponent.isEnabled()) {
+        if (targetComponent.isEnabled()) {
             config.get().tooltipBlackList.remove(playerRef.getUuid());
-        }
-        else {
+        } else {
             config.get().tooltipBlackList.add(playerRef.getUuid());
         }
         config.save();
