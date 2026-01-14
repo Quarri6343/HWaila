@@ -1,0 +1,33 @@
+Group {
+  LayoutMode: Middle;
+  Anchor: (Top: 20, Height: 60);
+
+  Group {
+    Background: #5000ff(0.8);
+    Anchor: (Width: 420, Height: 100, Top: 50);
+
+    Group {
+      Anchor: (Left: 8, Right: 8, Top: 8, Bottom: 8);
+      Background: #28007f(0.8);
+
+      Group {
+        LayoutMode: Left;
+
+        Group #ItemIconContainer {
+          Anchor: (Width: 72, Height: 72);
+          Padding: (Left: 35, Right: 35);
+        }
+
+        Label #Title {
+          Anchor: (Height: 32);
+          Padding: (Left: 35, Right: 35);
+          Style: (
+            FontSize: 20,
+            HorizontalAlignment: Center
+          );
+          Text: "This is an item";
+        }
+      }
+    }
+  }
+}
