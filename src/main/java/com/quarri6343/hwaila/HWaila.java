@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.util.Config;
 
 import javax.annotation.Nonnull;
 
@@ -20,6 +21,8 @@ public class HWaila extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private ComponentType<EntityStore, WailaTargetComponent> wailaTargetComponentType;
+
+    private Config<WailaConfig> config;
 
     private static HWaila instance;
 
@@ -35,6 +38,8 @@ public class HWaila extends JavaPlugin {
         super(init);
         instance = this;
         LOGGER.atInfo().log("Hello from " + this.getName() + " version " + this.getManifest().getVersion().toString());
+        config = this.withConfig("Waila", WailaConfig.CODEC);
+        getLogger().atInfo().log(getDataDirectory().toAbsolutePath().toString());
     }
 
     @Override
@@ -53,9 +58,17 @@ public class HWaila extends JavaPlugin {
             HudManager hudManager = player.getHudManager();
             hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
 
+            boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
             if (ref.getStore().getComponent(ref, getWailaTargetComponentType()) == null) {
-                ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(null, true));
+                ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(null, isTooltipEnabled));
+            }
+            else {
+                ref.getStore().getComponent(ref, getWailaTargetComponentType()).setEnabled(isTooltipEnabled);
             }
         });
+    }
+
+    public Config<WailaConfig> getConfig() {
+        return config;
     }
 }

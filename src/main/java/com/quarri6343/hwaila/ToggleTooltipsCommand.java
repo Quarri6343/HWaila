@@ -11,6 +11,7 @@ import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.util.Config;
 
 import javax.annotation.Nonnull;
 
@@ -48,5 +49,14 @@ public class ToggleTooltipsCommand extends AbstractPlayerCommand {
         else {
             targetComponent.setEnabled(!targetComponent.isEnabled());
         }
+
+        Config<WailaConfig> config = HWaila.getInstance().getConfig();
+        if(targetComponent.isEnabled()) {
+            config.get().tooltipBlackList.remove(playerRef.getUuid());
+        }
+        else {
+            config.get().tooltipBlackList.add(playerRef.getUuid());
+        }
+        config.save();
     }
 }
