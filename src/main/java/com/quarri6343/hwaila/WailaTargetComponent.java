@@ -14,6 +14,10 @@ public class WailaTargetComponent implements Component<EntityStore> {
         return HWaila.getInstance().getWailaTargetComponentType();
     }
 
+    public WailaTargetComponent(@Nullable String itemId) {
+        this.itemId = itemId;
+    }
+
     @Nullable
     public String getItemId() {
         return itemId;
@@ -25,6 +29,6 @@ public class WailaTargetComponent implements Component<EntityStore> {
 
     @Override
     public Component<EntityStore> clone() {
-        return new WailaTargetComponent();
+        return new WailaTargetComponent(this.itemId);
     }
 }

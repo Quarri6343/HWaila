@@ -40,7 +40,7 @@ public class HWaila extends JavaPlugin {
         LOGGER.atInfo().log("Setting up plugin " + this.getName());
         this.getCommandRegistry().registerCommand(new ShowTooltipsCommand(this.getName(), this.getManifest().getVersion().toString()));
 
-        wailaTargetComponentType = this.getEntityStoreRegistry().registerComponent(WailaTargetComponent.class, WailaTargetComponent::new);
+        wailaTargetComponentType = this.getEntityStoreRegistry().registerComponent(WailaTargetComponent.class, () -> new WailaTargetComponent(null));
         getEntityStoreRegistry().registerSystem(new PlayerTickEventSystem(wailaTargetComponentType));
     }
 }

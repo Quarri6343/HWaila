@@ -10,12 +10,8 @@ import javax.annotation.Nonnull;
 
 public class Tooltips extends CustomUIHud {
 
-    @Nonnull
-    private final WailaTargetComponent component;
-
-    @Override
-    public void update(boolean clear, @Nonnull UICommandBuilder commandBuilder) {
-        String itemID = component.getItemId();
+    public void update(boolean clear, @Nonnull UICommandBuilder commandBuilder, WailaTargetComponent targetComponent) {
+        String itemID = targetComponent.getItemId();
         if (itemID == null) {
             super.update(clear, commandBuilder);
             return;
@@ -37,9 +33,8 @@ public class Tooltips extends CustomUIHud {
         super.update(clear, commandBuilder);
     }
 
-    public Tooltips(@Nonnull PlayerRef playerRef, WailaTargetComponent component) {
+    public Tooltips(@Nonnull PlayerRef playerRef) {
         super(playerRef);
-        this.component = component;
     }
 
     @Override

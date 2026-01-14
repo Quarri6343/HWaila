@@ -31,14 +31,12 @@ public class ShowTooltipsCommand extends AbstractPlayerCommand {
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         Player playerComponent = store.getComponent(ref, Player.getComponentType());
         assert playerComponent != null;
-        WailaTargetComponent wailaTargetComponent = store.getComponent(ref, WailaTargetComponent.getComponentType());
-        assert wailaTargetComponent != null;
 
         HudManager hudManager = playerComponent.getHudManager();
         if (this.hideArg.provided(context)) {
             hudManager.resetHud(playerRef);
         } else {
-            hudManager.setCustomHud(playerRef, new Tooltips(playerRef, wailaTargetComponent));
+            hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
         }
     }
 }

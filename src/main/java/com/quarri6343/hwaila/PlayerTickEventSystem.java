@@ -21,6 +21,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
 
@@ -54,10 +55,11 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
 
         WailaTargetComponent component = archetypeChunk.getComponent(index, componentType);
         if (component == null) {
-            commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent());
+            commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent(null));
         }
+        final WailaTargetComponent oldComponent = ((WailaTargetComponent) component.clone());
+        final WailaTargetComponent newComponent = component;
         component.setItemId(null);
-        final WailaTargetComponent fComponent = component;
 
         runtime.selectTargetBlocks(commandBuffer, playerRef, (x, y, z) -> {
             World world = commandBuffer.getExternalData().getWorld();
@@ -69,16 +71,17 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
 
             if (blockType != null && blockType.getItem() != null) {
                 String itemID = blockType.getItem().getId();
-
-                fComponent.setItemId(itemID);
+                newComponent.setItemId(itemID);
             }
         });
 
         Player playerComponent = store.getComponent(playerRef, Player.getComponentType());
         assert playerComponent != null;
         HudManager hudManager = playerComponent.getHudManager();
-        if (hudManager.getCustomHud() instanceof Tooltips tooltips) {
-            tooltips.update(true, new UICommandBuilder());
+        if (hudManager.getCustomHud() instanceof Tooltips tooltips
+            && !Objects.equals(oldComponent.getItemId(), newComponent.getItemId())) {
+            tooltips.update(true, new UICommandBuilder(), newComponent);
+            HWaila.getInstance().getLogger().atInfo().log(oldComponent.getItemId() + " / " + newComponent.getItemId());
         }
     }
 }
