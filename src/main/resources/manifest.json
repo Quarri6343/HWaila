@@ -11,7 +11,7 @@
     "Website": "com.quarri6343",
     "ServerVersion": "*",
     "Dependencies": {
-        "Hytale:EntityModule": "*"
+        
     },
     "OptionalDependencies": {
         

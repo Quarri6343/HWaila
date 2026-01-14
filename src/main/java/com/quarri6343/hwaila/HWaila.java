@@ -23,7 +23,7 @@ public class HWaila extends JavaPlugin {
 
     private ComponentType<EntityStore, WailaTargetComponent> wailaTargetComponentType;
 
-    private Config<WailaConfig> config;
+    private Config<WailaConfig> config = this.withConfig("Waila", WailaConfig.CODEC);;
 
     private static HWaila instance;
 
@@ -39,7 +39,6 @@ public class HWaila extends JavaPlugin {
         super(init);
         instance = this;
         LOGGER.atInfo().log("Hello from " + this.getName() + " version " + this.getManifest().getVersion().toString());
-        config = this.withConfig("Waila", WailaConfig.CODEC);
         getLogger().atInfo().log(getDataDirectory().toAbsolutePath().toString());
     }
 

@@ -34,7 +34,8 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
     @Nonnull
     @Override
     public Query getQuery() {
-        return Query.and(Player.getComponentType());
+//        return Query.and(Player.getComponentType()); don't work due to entitymodule depencency
+        return Query.and(componentType);
     }
 
     @Override
