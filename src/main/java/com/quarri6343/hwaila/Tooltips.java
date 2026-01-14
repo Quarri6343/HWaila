@@ -24,8 +24,9 @@ public class Tooltips extends CustomUIHud {
         commandBuilder.append("#ItemIconContainer", "Pages/DroppedItemSlot.ui");
         commandBuilder.set(itemSelector + "#ItemIcon.ItemId", itemStack.getItemId());
         commandBuilder.set(itemSelector + "#ItemIcon.Quantity", itemStack.getQuantity());
-        //TODO:localization
-        String itemName = I18nModule.get().getMessage("en-US", itemStack.getItem().getTranslationKey());
+
+        String lang = getPlayerRef().getLanguage();
+        String itemName = I18nModule.get().getMessage(lang, itemStack.getItem().getTranslationKey());
         if (itemName != null) {
             commandBuilder.set("#ItemNameLabel.Text", itemName);
         }
