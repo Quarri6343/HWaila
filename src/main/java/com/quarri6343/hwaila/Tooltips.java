@@ -9,10 +9,33 @@ import javax.annotation.Nonnull;
 
 public class Tooltips extends CustomUIHud {
 
-    //implement update
+    @Nonnull
+    private final WailaTargetComponent component;
 
-    public Tooltips(@Nonnull PlayerRef playerRef) {
+    @Override
+    public void update(boolean clear, @Nonnull UICommandBuilder commandBuilder) {
+        String itemID = component.getItemId();
+        if (itemID == null) {
+            HWaila.getInstance().getLogger().atInfo().log("itemID == null");
+            return; //TODO: hide hud
+        }
+
+        HWaila.getInstance().getLogger().atInfo().log(itemID);
+
+        commandBuilder.append("Pages/Tooltips.ui");
+
+        ItemStack itemStack = new ItemStack(itemID, 10, null);
+        String itemSelector = "#ItemIconContainer[0] ";
+        commandBuilder.append("#ItemIconContainer", "Pages/DroppedItemSlot.ui");
+        commandBuilder.set(itemSelector + "#ItemIcon.ItemId", itemStack.getItemId());
+        commandBuilder.set(itemSelector + "#ItemIcon.Quantity", itemStack.getQuantity());
+
+        super.update(clear, commandBuilder);
+    }
+
+    public Tooltips(@Nonnull PlayerRef playerRef, WailaTargetComponent component) {
         super(playerRef);
+        this.component = component;
     }
 
     @Override
