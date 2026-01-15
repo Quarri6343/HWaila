@@ -9,14 +9,14 @@ import javax.annotation.Nullable;
 public class WailaTargetComponent implements Component<EntityStore> {
 
     private @Nullable String itemId;
+    private int entityRoleIndex;
     private boolean enabled = false;
 
     public static ComponentType<EntityStore, WailaTargetComponent> getComponentType() {
         return HWaila.getInstance().getWailaTargetComponentType();
     }
 
-    public WailaTargetComponent(@Nullable String itemId, boolean enabled) {
-        this.itemId = itemId;
+    public WailaTargetComponent(boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -33,6 +33,14 @@ public class WailaTargetComponent implements Component<EntityStore> {
         this.itemId = itemId;
     }
 
+    public int getEntityRoleIndex() {
+        return entityRoleIndex;
+    }
+
+    public void setEntityRoleIndex(int entityRoleIndex) {
+        this.entityRoleIndex = entityRoleIndex;
+    }
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -43,6 +51,9 @@ public class WailaTargetComponent implements Component<EntityStore> {
 
     @Override
     public Component<EntityStore> clone() {
-        return new WailaTargetComponent(this.itemId, this.enabled);
+        WailaTargetComponent clone = new WailaTargetComponent(this.enabled);
+        clone.setItemId(this.itemId);
+        clone.setEntityRoleIndex(this.entityRoleIndex);
+        return clone;
     }
 }

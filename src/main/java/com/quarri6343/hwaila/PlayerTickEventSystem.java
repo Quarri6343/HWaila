@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -46,14 +47,16 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
         assert playerComponent != null;
         HudManager hudManager = playerComponent.getHudManager();
 
+        if (!(hudManager.getCustomHud() instanceof Tooltips tooltips)) {
+            return;
+        }
+
         if (component == null) {
-            commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent(null, true));
+            commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent(true));
         }
         if (!component.isEnabled()) {
             component.setItemId(null);
-            if (hudManager.getCustomHud() instanceof Tooltips tooltips) {
-                tooltips.update(true, new UICommandBuilder(), component);
-            }
+            tooltips.update(true, new UICommandBuilder(), component);
             return;
         }
 
@@ -72,6 +75,16 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
         final WailaTargetComponent oldComponent = ((WailaTargetComponent) component.clone());
         final WailaTargetComponent newComponent = component;
         component.setItemId(null);
+        component.setEntityRoleIndex(-1);
+
+        runtime.selectTargetEntities(commandBuffer, playerRef, ((entityRef, vector4d) -> {
+            NPCEntity npcEntity = store.getComponent(entityRef, NPCEntity.getComponentType());
+            if (npcEntity == null) {
+                return; //TODO: support player entity
+            }
+            int roleIndex = npcEntity.getRoleIndex();
+            newComponent.setEntityRoleIndex(roleIndex);
+        }), _ -> true);
 
         runtime.selectTargetBlocks(commandBuffer, playerRef, (x, y, z) -> {
             World world = commandBuffer.getExternalData().getWorld();
@@ -87,8 +100,8 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
             }
         });
 
-        if (hudManager.getCustomHud() instanceof Tooltips tooltips
-                && !Objects.equals(oldComponent.getItemId(), newComponent.getItemId())) {
+        if (!Objects.equals(oldComponent.getItemId(), newComponent.getItemId())
+            || !Objects.equals(oldComponent.getEntityRoleIndex(), newComponent.getEntityRoleIndex())) {
             tooltips.update(true, new UICommandBuilder(), newComponent);
         }
     }

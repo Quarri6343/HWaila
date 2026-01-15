@@ -60,7 +60,7 @@ public class HWaila extends JavaPlugin {
 
             boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
             if (ref.getStore().getComponent(ref, getWailaTargetComponentType()) == null) {
-                ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(null, isTooltipEnabled));
+                ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(isTooltipEnabled));
             } else {
                 ref.getStore().getComponent(ref, getWailaTargetComponentType()).setEnabled(isTooltipEnabled);
             }
