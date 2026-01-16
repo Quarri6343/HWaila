@@ -3,12 +3,16 @@ package com.quarri6343.hwaila;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
+import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
 
@@ -37,6 +41,10 @@ public class HWaila extends JavaPlugin {
         getLogger().atInfo().log(getDataDirectory().toAbsolutePath().toString());
     }
 
+    public Config<WailaConfig> getConfig() {
+        return config;
+    }
+
     @Override
     protected void setup() {
         LOGGER.atInfo().log("Setting up plugin " + this.getName());
@@ -49,9 +57,31 @@ public class HWaila extends JavaPlugin {
             Ref<EntityStore> ref = event.getPlayerRef();
             perPlayerSetup(ref);
         });
+        getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, event -> {
+            Ref<EntityStore> ref = event.getPlayerRef().getReference();
+            perPlayerShutdown(ref);
+        });
     }
 
-    //TODO:call this on every player when plugin is Reloaded
+    @Override
+    protected void start() {
+        for(World world : Universe.get().getWorlds().values()) {
+            world.execute(() -> {
+                for (PlayerRef player : world.getPlayerRefs()) {
+                    Ref<EntityStore> ref = player.getReference();
+                    if (ref != null) {
+                        perPlayerSetup(ref);
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void shutdown() {
+        //TODO: find a way to remove HUD before the hud component is unregistered
+    }
+
     private void perPlayerSetup(Ref<EntityStore> ref) {
         PlayerRef playerRef = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
         Player player = ref.getStore().getComponent(ref, Player.getComponentType());
@@ -59,14 +89,18 @@ public class HWaila extends JavaPlugin {
         hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
 
         boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
-        if (ref.getStore().getComponent(ref, getWailaTargetComponentType()) == null) {
+        WailaTargetComponent component = ref.getStore().getComponent(ref, getWailaTargetComponentType());
+        if (component == null) {
             ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(isTooltipEnabled));
         } else {
-            ref.getStore().getComponent(ref, getWailaTargetComponentType()).setEnabled(isTooltipEnabled);
+            component.setEnabled(isTooltipEnabled);
         }
     }
 
-    public Config<WailaConfig> getConfig() {
-        return config;
+    private void perPlayerShutdown(Ref<EntityStore> ref) {
+        WailaTargetComponent component = ref.getStore().getComponent(ref, getWailaTargetComponentType());
+        if (component != null) {
+            component.setEnabled(false);
+        }
     }
 }
