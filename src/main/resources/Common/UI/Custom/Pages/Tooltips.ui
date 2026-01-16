@@ -18,14 +18,29 @@ Group {
           Padding: (Left: 35, Right: 35);
         }
 
-        Label #ItemNameLabel {
-          Anchor: (Height: 32);
-          Padding: (Left: 35, Right: 35);
-          Style: (
-            FontSize: 20,
-            HorizontalAlignment: Center
-          );
-          Text: "";
+        Group {
+        LayoutMode: Top;
+        Padding: (Vertical: 10);
+
+            Label #ItemNameLabel {
+              Anchor: (Height: 32);
+              Padding: (Left: 35, Right: 35);
+              Style: (
+                FontSize: 20,
+              );
+              Text: "";
+            }
+
+            Label #PackNameLabel {
+              Anchor: (Height: 32);
+              Padding: (Left: 35, Right: 35);
+              Style: (
+                FontSize: 20,
+                RenderBold: true,
+                TextColor: #5555FF,
+              );
+              Text: "";
+            }
         }
       }
     }

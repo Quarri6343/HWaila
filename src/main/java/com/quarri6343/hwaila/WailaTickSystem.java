@@ -1,5 +1,6 @@
 package com.quarri6343.hwaila;
 
+import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -91,6 +92,10 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
             if (blockType != null && blockType.getItem() != null) {
                 String itemID = blockType.getItem().getId();
                 component.setItemId(itemID);
+
+                //test
+                String packName = AssetRegistry.getAssetStore(BlockType.class).getAssetMap().getAssetPack((String) blockType.getData().getKey());
+                component.setPluginName(packName);
             }
 
             //TODO: set mod name

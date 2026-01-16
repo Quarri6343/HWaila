@@ -3,10 +3,8 @@ package com.quarri6343.hwaila;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
-import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -57,10 +55,6 @@ public class HWaila extends JavaPlugin {
             Ref<EntityStore> ref = event.getPlayerRef();
             perPlayerSetup(ref);
         });
-        getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, event -> {
-            Ref<EntityStore> ref = event.getPlayerRef().getReference();
-            perPlayerShutdown(ref);
-        });
     }
 
     @Override
@@ -97,6 +91,7 @@ public class HWaila extends JavaPlugin {
         }
     }
 
+    @SuppressWarnings("unused")
     private void perPlayerShutdown(Ref<EntityStore> ref) {
         WailaTargetComponent component = ref.getStore().getComponent(ref, getWailaTargetComponentType());
         if (component != null) {

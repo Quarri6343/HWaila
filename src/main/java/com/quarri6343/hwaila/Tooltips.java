@@ -38,6 +38,11 @@ public class Tooltips extends CustomUIHud {
             if (itemName != null) {
                 commandBuilder.set("#ItemNameLabel.Text", itemName);
             }
+            //TODO: Fallback behaviour when item name is null
+            String pluginName = targetComponent.getPluginName();
+            if (pluginName != null) {
+                commandBuilder.set("#PackNameLabel.Text", pluginName);
+            }
         }
 
         super.update(clear, commandBuilder);

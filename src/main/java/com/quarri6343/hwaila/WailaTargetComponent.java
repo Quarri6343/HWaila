@@ -10,6 +10,7 @@ public class WailaTargetComponent implements Component<EntityStore> {
 
     private @Nullable String itemId;
     private int entityRoleIndex;
+    private String pluginName;
     private boolean enabled = false;
 
     public static ComponentType<EntityStore, WailaTargetComponent> getComponentType() {
@@ -39,6 +40,14 @@ public class WailaTargetComponent implements Component<EntityStore> {
 
     public void setEntityRoleIndex(int entityRoleIndex) {
         this.entityRoleIndex = entityRoleIndex;
+    }
+
+    public String getPluginName() {
+        return pluginName;
+    }
+
+    public void setPluginName(String pluginName) {
+        this.pluginName = pluginName;
     }
 
     public boolean isEnabled() {
