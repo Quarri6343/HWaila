@@ -25,6 +25,8 @@ public class Tooltips extends CustomUIHud {
         if (roleName != null) {
             //TODO:npc name i18n
             commandBuilder.set("#ItemNameLabel.Text", roleName);
+            String pluginName = targetComponent.getPluginName();
+            commandBuilder.set("#PackNameLabel.Text", pluginName);
         }
         else {
             ItemStack itemStack = new ItemStack(itemID, 10, null);

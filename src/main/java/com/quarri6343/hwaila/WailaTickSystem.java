@@ -10,6 +10,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
@@ -78,6 +79,7 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
         }
     }
 
+    //TODO: BlockAccessorHandler, EntityAccessorHandler
     private static boolean handleBlock(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
         String oldID = component.getItemId();
         component.setItemId(null);
@@ -93,13 +95,10 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
                 String itemID = blockType.getItem().getId();
                 component.setItemId(itemID);
 
-                //test
-                String packName = AssetRegistry.getAssetStore(BlockType.class).getAssetMap().getAssetPack((String) blockType.getData().getKey());
+                String blockKey = (String) blockType.getData().getKey();
+                String packName = AssetRegistry.getAssetStore(BlockType.class).getAssetMap().getAssetPack(blockKey);
                 component.setPluginName(packName);
             }
-
-            //TODO: set mod name
-            //component.setDirty(true)
         });
 
         return !Objects.equals(component.getItemId(), oldID);
@@ -112,10 +111,13 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
             NPCEntity npcEntity = store.getComponent(entityRef, NPCEntity.getComponentType());
             //TODO: support player entity
             int roleIndex = -1;
+            String packName = null;
             if (npcEntity != null) {
                 roleIndex = npcEntity.getRoleIndex();
+                packName = ModelAsset.getAssetMap().getAssetPack(npcEntity.getRoleName());
             }
             component.setEntityRoleIndex(roleIndex);
+            component.setPluginName(packName);
         }), _ -> true);
 
         return component.getEntityRoleIndex() != oldRoleIndex;
