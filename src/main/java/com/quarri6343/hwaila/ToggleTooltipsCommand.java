@@ -16,7 +16,7 @@ import com.hypixel.hytale.server.core.util.Config;
 import javax.annotation.Nonnull;
 
 /**
- * Toggle Test Waila Hud
+ * Toggle Waila Hud
  */
 public class ToggleTooltipsCommand extends AbstractPlayerCommand {
 
@@ -27,7 +27,7 @@ public class ToggleTooltipsCommand extends AbstractPlayerCommand {
 
     public ToggleTooltipsCommand(String pluginName, String pluginVersion) {
         super("waila", "Show tooltips.");
-        this.setPermissionGroup(GameMode.Adventure); // Allows the command to be used by anyone, not just OP
+        this.setPermissionGroup(GameMode.Adventure);
     }
 
     @Override
@@ -37,6 +37,12 @@ public class ToggleTooltipsCommand extends AbstractPlayerCommand {
         WailaTargetComponent targetComponent = store.getComponent(ref, WailaTargetComponent.getComponentType());
         assert targetComponent != null;
 
+        toggleTooltips(context, playerRef, targetComponent, playerComponent);
+
+        updateTooltipsConfig(playerRef, targetComponent);
+    }
+
+    private void toggleTooltips(CommandContext context, PlayerRef playerRef, WailaTargetComponent targetComponent, Player playerComponent) {
         // the game crashes when you remove the hud through hudManager.resetHud(playerRef);
         if (this.hideArg.provided(context)) {
             targetComponent.setEnabled(false);
@@ -48,7 +54,9 @@ public class ToggleTooltipsCommand extends AbstractPlayerCommand {
         } else {
             targetComponent.setEnabled(!targetComponent.isEnabled());
         }
+    }
 
+    private static void updateTooltipsConfig(PlayerRef playerRef, WailaTargetComponent targetComponent) {
         Config<WailaConfig> config = HWaila.getInstance().getConfig();
         if (targetComponent.isEnabled()) {
             config.get().tooltipBlackList.remove(playerRef.getUuid());

@@ -14,10 +14,6 @@ import com.hypixel.hytale.server.core.util.Config;
 
 import javax.annotation.Nonnull;
 
-/**
- * This class serves as the entrypoint for your plugin. Use the setup method to register into game registries or add
- * event listeners.
- */
 public class HWaila extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
@@ -38,7 +34,6 @@ public class HWaila extends JavaPlugin {
     public HWaila(@Nonnull JavaPluginInit init) {
         super(init);
         instance = this;
-        LOGGER.atInfo().log("Hello from " + this.getName() + " version " + this.getManifest().getVersion().toString());
         getLogger().atInfo().log(getDataDirectory().toAbsolutePath().toString());
     }
 
@@ -48,23 +43,27 @@ public class HWaila extends JavaPlugin {
         this.getCommandRegistry().registerCommand(new ToggleTooltipsCommand(this.getName(), this.getManifest().getVersion().toString()));
 
         wailaTargetComponentType = this.getEntityStoreRegistry().registerComponent(WailaTargetComponent.class, WailaTargetComponent::new);
-        getEntityStoreRegistry().registerSystem(new PlayerTickEventSystem(wailaTargetComponentType));
+        getEntityStoreRegistry().registerSystem(new WailaTickSystem(wailaTargetComponentType));
 
         getEventRegistry().registerGlobal(PlayerReadyEvent.class, event -> {
             Ref<EntityStore> ref = event.getPlayerRef();
-
-            PlayerRef playerRef = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
-            Player player = ref.getStore().getComponent(ref, Player.getComponentType());
-            HudManager hudManager = player.getHudManager();
-            hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
-
-            boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
-            if (ref.getStore().getComponent(ref, getWailaTargetComponentType()) == null) {
-                ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(isTooltipEnabled));
-            } else {
-                ref.getStore().getComponent(ref, getWailaTargetComponentType()).setEnabled(isTooltipEnabled);
-            }
+            perPlayerSetup(ref);
         });
+    }
+
+    //TODO:call this on every player when plugin is Reloaded
+    private void perPlayerSetup(Ref<EntityStore> ref) {
+        PlayerRef playerRef = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
+        Player player = ref.getStore().getComponent(ref, Player.getComponentType());
+        HudManager hudManager = player.getHudManager();
+        hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
+
+        boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
+        if (ref.getStore().getComponent(ref, getWailaTargetComponentType()) == null) {
+            ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(isTooltipEnabled));
+        } else {
+            ref.getStore().getComponent(ref, getWailaTargetComponentType()).setEnabled(isTooltipEnabled);
+        }
     }
 
     public Config<WailaConfig> getConfig() {

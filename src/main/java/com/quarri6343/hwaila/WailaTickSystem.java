@@ -24,11 +24,11 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
+public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
 
     private final ComponentType<EntityStore, WailaTargetComponent> componentType;
 
-    public PlayerTickEventSystem(ComponentType<EntityStore, WailaTargetComponent> componentType) {
+    public WailaTickSystem(ComponentType<EntityStore, WailaTargetComponent> componentType) {
         this.componentType = componentType;
     }
 
@@ -41,12 +41,12 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
 
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk, @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
-        WailaTargetComponent component = archetypeChunk.getComponent(index, componentType);
         Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
+        WailaTargetComponent component = store.getComponent(playerRef, componentType);
         Player playerComponent = store.getComponent(playerRef, Player.getComponentType());
         assert playerComponent != null;
-        HudManager hudManager = playerComponent.getHudManager();
 
+        HudManager hudManager = playerComponent.getHudManager();
         if (!(hudManager.getCustomHud() instanceof Tooltips tooltips)) {
             return;
         }
@@ -66,43 +66,53 @@ public class PlayerTickEventSystem extends EntityTickingSystem<EntityStore> {
         ModelComponent playerModelComponent = store.getComponent(playerRef, ModelComponent.getComponentType());
         if (playerModelComponent != null) {
             float offset = playerModelComponent.getModel().getEyeHeight(playerRef, store);
-            //mismatch protocol v3d vs math v3d
             selector.setOffset(new Vector3d(0, offset, 0));
         }
 
         runtime.tick(commandBuffer, playerRef, 0, 0);
 
-        final WailaTargetComponent oldComponent = ((WailaTargetComponent) component.clone());
-        final WailaTargetComponent newComponent = component;
+        if (handleEntity(store, commandBuffer, component, runtime, playerRef)
+            || handleBlock(store, commandBuffer, component, runtime, playerRef)) {
+            tooltips.update(true, new UICommandBuilder(), component);
+        }
+    }
+
+    private static boolean handleBlock(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
+        String oldID = component.getItemId();
         component.setItemId(null);
-        component.setEntityRoleIndex(-1);
-
-        runtime.selectTargetEntities(commandBuffer, playerRef, ((entityRef, vector4d) -> {
-            NPCEntity npcEntity = store.getComponent(entityRef, NPCEntity.getComponentType());
-            if (npcEntity == null) {
-                return; //TODO: support player entity
-            }
-            int roleIndex = npcEntity.getRoleIndex();
-            newComponent.setEntityRoleIndex(roleIndex);
-        }), _ -> true);
-
         runtime.selectTargetBlocks(commandBuffer, playerRef, (x, y, z) -> {
             World world = commandBuffer.getExternalData().getWorld();
             ChunkStore chunkStore = world.getChunkStore();
-            TransformComponent transformComponent = archetypeChunk.getComponent(index, TransformComponent.getComponentType());
+            TransformComponent transformComponent = store.getComponent(playerRef, TransformComponent.getComponentType());
             WorldChunk chunk = chunkStore.getStore()
                     .getComponent(transformComponent.getChunkRef(), WorldChunk.getComponentType());
             BlockType blockType = chunk.getBlockType(x, y, z);
 
             if (blockType != null && blockType.getItem() != null) {
                 String itemID = blockType.getItem().getId();
-                newComponent.setItemId(itemID);
+                component.setItemId(itemID);
             }
+
+            //TODO: set mod name
+            //component.setDirty(true)
         });
 
-        if (!Objects.equals(oldComponent.getItemId(), newComponent.getItemId())
-            || !Objects.equals(oldComponent.getEntityRoleIndex(), newComponent.getEntityRoleIndex())) {
-            tooltips.update(true, new UICommandBuilder(), newComponent);
-        }
+        return !Objects.equals(component.getItemId(), oldID);
+    }
+
+    private static boolean handleEntity(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
+        int oldRoleIndex = component.getEntityRoleIndex();
+        component.setEntityRoleIndex(-1);
+        runtime.selectTargetEntities(commandBuffer, playerRef, ((entityRef, vector4d) -> {
+            NPCEntity npcEntity = store.getComponent(entityRef, NPCEntity.getComponentType());
+            //TODO: support player entity
+            int roleIndex = -1;
+            if (npcEntity != null) {
+                roleIndex = npcEntity.getRoleIndex();
+            }
+            component.setEntityRoleIndex(roleIndex);
+        }), _ -> true);
+
+        return component.getEntityRoleIndex() != oldRoleIndex;
     }
 }
