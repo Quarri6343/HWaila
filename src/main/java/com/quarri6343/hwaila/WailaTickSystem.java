@@ -1,6 +1,5 @@
 package com.quarri6343.hwaila;
 
-import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.ComponentType;
@@ -10,7 +9,6 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
-import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -21,8 +19,12 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
+import com.quarri6343.hwaila.api.Accessor;
+import com.quarri6343.hwaila.api.BlockAccessorImpl;
+import com.quarri6343.hwaila.api.EntityAccessorImpl;
 
 import javax.annotation.Nonnull;
+
 import java.util.Objects;
 
 import static com.quarri6343.hwaila.HWaila.HUD_IDENTIFIER;
@@ -56,8 +58,8 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
             commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent(true));
         }
         if (!component.isEnabled()) {
-            component.setItemId(null);
-            component.setEntityRoleIndex(-1);
+            component.setPreviousAccessor(component.getAccessor());
+            component.setAccessor(null);
             tooltips.update(new UICommandBuilder(), component);
             return;
         }
@@ -73,16 +75,21 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
 
         runtime.tick(commandBuffer, playerRef, 0, 0);
 
-        if (handleEntity(store, commandBuffer, component, runtime, playerRef)
-            || handleBlock(store, commandBuffer, component, runtime, playerRef)) {
-            tooltips.update(new UICommandBuilder(), component);
+        Accessor accessorBeforeUpdate = component.getAccessor();
+        handleEntity(store, commandBuffer, component, runtime, playerRef);
+        if (Objects.equals(component.getAccessor(), accessorBeforeUpdate)) {
+            handleBlock(store, commandBuffer, component, runtime, playerRef);
         }
+        if (Objects.equals(component.getAccessor(), accessorBeforeUpdate)) {
+            component.setPreviousAccessor(component.getAccessor());
+            component.setAccessor(null);
+        }
+        tooltips.update(new UICommandBuilder(), component);
     }
 
-    //TODO: BlockAccessorHandler, EntityAccessorHandler
-    private static boolean handleBlock(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
-        String oldID = component.getItemId();
-        component.setItemId(null);
+    //TODO: use BlockAccessorHandler, EntityAccessorHandler to gather information with provider
+
+    private static void handleBlock(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
         runtime.selectTargetBlocks(commandBuffer, playerRef, (x, y, z) -> {
             World world = commandBuffer.getExternalData().getWorld();
             ChunkStore chunkStore = world.getChunkStore();
@@ -90,36 +97,17 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
             WorldChunk chunk = chunkStore.getStore()
                     .getComponent(transformComponent.getChunkRef(), WorldChunk.getComponentType());
             BlockType blockType = chunk.getBlockType(x, y, z);
-
-            if (blockType != null && blockType.getItem() != null) {
-                String itemID = blockType.getItem().getId();
-                component.setItemId(itemID);
-
-                String blockKey = (String) blockType.getData().getKey();
-                String packName = AssetRegistry.getAssetStore(BlockType.class).getAssetMap().getAssetPack(blockKey);
-                component.setPluginName(packName);
-            }
+            component.setPreviousAccessor(component.getAccessor());
+            component.setAccessor(new BlockAccessorImpl(store, playerRef, blockType));
         });
-
-        return !Objects.equals(component.getItemId(), oldID);
     }
 
-    private static boolean handleEntity(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
-        int oldRoleIndex = component.getEntityRoleIndex();
-        component.setEntityRoleIndex(-1);
+    private static void handleEntity(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
         runtime.selectTargetEntities(commandBuffer, playerRef, ((entityRef, vector4d) -> {
             NPCEntity npcEntity = store.getComponent(entityRef, NPCEntity.getComponentType());
             //TODO: support player entity
-            int roleIndex = -1;
-            String packName = null;
-            if (npcEntity != null) {
-                roleIndex = npcEntity.getRoleIndex();
-                packName = ModelAsset.getAssetMap().getAssetPack(npcEntity.getRoleName());
-            }
-            component.setEntityRoleIndex(roleIndex);
-            component.setPluginName(packName);
+            component.setPreviousAccessor(component.getAccessor());
+            component.setAccessor(new EntityAccessorImpl(store, playerRef, npcEntity));
         }), _ -> true);
-
-        return component.getEntityRoleIndex() != oldRoleIndex;
     }
 }

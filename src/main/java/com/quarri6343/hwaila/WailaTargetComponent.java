@@ -3,14 +3,14 @@ package com.quarri6343.hwaila;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.quarri6343.hwaila.api.Accessor;
 
 import javax.annotation.Nullable;
 
 public class WailaTargetComponent implements Component<EntityStore> {
 
-    private @Nullable String itemId;
-    private int entityRoleIndex;
-    private String pluginName;
+    private Accessor accessor;
+    private Accessor previousAccessor;
     private boolean enabled = false;
 
     public static ComponentType<EntityStore, WailaTargetComponent> getComponentType() {
@@ -25,29 +25,20 @@ public class WailaTargetComponent implements Component<EntityStore> {
 
     }
 
-    @Nullable
-    public String getItemId() {
-        return itemId;
+    public Accessor getAccessor() {
+        return accessor;
     }
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
+    public void setAccessor(Accessor accessor) {
+        this.accessor = accessor;
     }
 
-    public int getEntityRoleIndex() {
-        return entityRoleIndex;
+    public Accessor getPreviousAccessor() {
+        return previousAccessor;
     }
 
-    public void setEntityRoleIndex(int entityRoleIndex) {
-        this.entityRoleIndex = entityRoleIndex;
-    }
-
-    public String getPluginName() {
-        return pluginName;
-    }
-
-    public void setPluginName(String pluginName) {
-        this.pluginName = pluginName;
+    public void setPreviousAccessor(Accessor previousAccessor) {
+        this.previousAccessor = previousAccessor;
     }
 
     public boolean isEnabled() {
@@ -61,8 +52,8 @@ public class WailaTargetComponent implements Component<EntityStore> {
     @Override
     public Component<EntityStore> clone() {
         WailaTargetComponent clone = new WailaTargetComponent(this.enabled);
-        clone.setItemId(this.itemId);
-        clone.setEntityRoleIndex(this.entityRoleIndex);
+        clone.setPreviousAccessor(this.previousAccessor);
+        clone.setAccessor(this.accessor);
         return clone;
     }
 }
