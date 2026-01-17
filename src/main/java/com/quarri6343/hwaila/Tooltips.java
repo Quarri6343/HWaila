@@ -11,24 +11,20 @@ import javax.annotation.Nonnull;
 
 public class Tooltips extends CustomUIHud {
 
-    public void update(boolean clear, @Nonnull UICommandBuilder commandBuilder, WailaTargetComponent targetComponent) {
+    public void update(@Nonnull UICommandBuilder commandBuilder, WailaTargetComponent targetComponent) {
         String itemID = targetComponent.getItemId();
         int roleIndex = targetComponent.getEntityRoleIndex();
         String roleName = NPCPlugin.get().getName(roleIndex);
-        if (itemID == null && roleName == null) {
-            super.update(clear, commandBuilder);
-            return;
-        }
-
-        commandBuilder.append("Pages/Tooltips.ui");
 
         if (roleName != null) {
+            commandBuilder.set("#Root.Visible", true);
             //TODO:npc name i18n
             commandBuilder.set("#ItemNameLabel.Text", roleName);
             String pluginName = targetComponent.getPluginName();
             commandBuilder.set("#PackNameLabel.Text", pluginName);
         }
-        else {
+        else if(itemID != null) {
+            commandBuilder.set("#Root.Visible", true);
             ItemStack itemStack = new ItemStack(itemID, 10, null);
             String itemSelector = "#ItemIconContainer[0] ";
             commandBuilder.append("#ItemIconContainer", "Pages/DroppedItemSlot.ui");
@@ -46,8 +42,12 @@ public class Tooltips extends CustomUIHud {
                 commandBuilder.set("#PackNameLabel.Text", pluginName);
             }
         }
+        else {
+            commandBuilder.set("#Root.Visible", false);
+        }
 
-        super.update(clear, commandBuilder);
+        //never set clear flag to true (it will remove huds from other mods)
+        super.update(false, commandBuilder);
     }
 
     public Tooltips(@Nonnull PlayerRef playerRef) {
@@ -56,5 +56,6 @@ public class Tooltips extends CustomUIHud {
 
     @Override
     protected void build(@Nonnull UICommandBuilder commandBuilder) {
+        commandBuilder.append("Pages/Tooltips.ui");
     }
 }

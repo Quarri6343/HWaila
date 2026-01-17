@@ -7,13 +7,14 @@ import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.FlagArg;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.Config;
 
 import javax.annotation.Nonnull;
+
+import static com.quarri6343.hwaila.HWaila.HUD_IDENTIFIER;
 
 /**
  * Toggle Waila Hud
@@ -43,13 +44,11 @@ public class ToggleTooltipsCommand extends AbstractPlayerCommand {
     }
 
     private void toggleTooltips(CommandContext context, PlayerRef playerRef, WailaTargetComponent targetComponent, Player playerComponent) {
-        // the game crashes when you remove the hud through hudManager.resetHud(playerRef);
         if (this.hideArg.provided(context)) {
             targetComponent.setEnabled(false);
         } else if (this.showArg.provided(context)) {
-            //in case other mod override the hud
-            HudManager hudManager = playerComponent.getHudManager();
-            hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
+            //in case the hud somehow disabled
+            CustomHUDUtil.setCustomHUD(playerComponent, playerRef, HUD_IDENTIFIER, new Tooltips(playerRef));
             targetComponent.setEnabled(true);
         } else {
             targetComponent.setEnabled(!targetComponent.isEnabled());

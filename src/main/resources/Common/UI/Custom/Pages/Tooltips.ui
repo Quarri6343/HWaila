@@ -1,4 +1,4 @@
-Group {
+Group #Root {
   LayoutMode: Middle;
   Anchor: (Top: 20, Height: 60);
 

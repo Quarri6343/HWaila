@@ -12,7 +12,6 @@ import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.selector.Selector;
@@ -25,6 +24,8 @@ import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+
+import static com.quarri6343.hwaila.HWaila.HUD_IDENTIFIER;
 
 public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
 
@@ -47,9 +48,7 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
         WailaTargetComponent component = store.getComponent(playerRef, componentType);
         Player playerComponent = store.getComponent(playerRef, Player.getComponentType());
         assert playerComponent != null;
-
-        HudManager hudManager = playerComponent.getHudManager();
-        if (!(hudManager.getCustomHud() instanceof Tooltips tooltips)) {
+        if (!(CustomHUDUtil.getCustomHUD(playerComponent, HUD_IDENTIFIER) instanceof Tooltips tooltips)) {
             return;
         }
 
@@ -58,7 +57,8 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
         }
         if (!component.isEnabled()) {
             component.setItemId(null);
-            tooltips.update(true, new UICommandBuilder(), component);
+            component.setEntityRoleIndex(-1);
+            tooltips.update(new UICommandBuilder(), component);
             return;
         }
 
@@ -75,7 +75,7 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
 
         if (handleEntity(store, commandBuffer, component, runtime, playerRef)
             || handleBlock(store, commandBuffer, component, runtime, playerRef)) {
-            tooltips.update(true, new UICommandBuilder(), component);
+            tooltips.update(new UICommandBuilder(), component);
         }
     }
 

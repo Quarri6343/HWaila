@@ -4,7 +4,6 @@ import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.hud.HudManager;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -17,13 +16,15 @@ import com.hypixel.hytale.server.core.util.Config;
 import javax.annotation.Nonnull;
 
 public class HWaila extends JavaPlugin {
+
+    public static final String HUD_IDENTIFIER = "waila";
+
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
-    private ComponentType<EntityStore, WailaTargetComponent> wailaTargetComponentType;
-
-    private Config<WailaConfig> config = this.withConfig("Waila", WailaConfig.CODEC);;
-
     private static HWaila instance;
+
+    private ComponentType<EntityStore, WailaTargetComponent> wailaTargetComponentType;
+    private Config<WailaConfig> config = this.withConfig("Waila", WailaConfig.CODEC);;
 
     public static HWaila getInstance() {
         return instance;
@@ -77,10 +78,9 @@ public class HWaila extends JavaPlugin {
     }
 
     private void perPlayerSetup(Ref<EntityStore> ref) {
-        PlayerRef playerRef = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
         Player player = ref.getStore().getComponent(ref, Player.getComponentType());
-        HudManager hudManager = player.getHudManager();
-        hudManager.setCustomHud(playerRef, new Tooltips(playerRef));
+        PlayerRef playerRef = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
+        CustomHUDUtil.setCustomHUD(player, playerRef, HUD_IDENTIFIER, new Tooltips(playerRef));
 
         boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
         WailaTargetComponent component = ref.getStore().getComponent(ref, getWailaTargetComponentType());
