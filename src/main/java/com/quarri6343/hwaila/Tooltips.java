@@ -18,16 +18,23 @@ public class Tooltips extends CustomUIHud {
 
         if (roleName != null) {
             commandBuilder.set("#Root.Visible", true);
+            commandBuilder.set("#ItemIconContainer.Visible", false);
+            commandBuilder.set("#NPCIcon.Visible", true);
+
+            commandBuilder.set("#NPCIcon.AssetPath", getNPCIconPath(roleName));
+
             //TODO:npc name i18n
             commandBuilder.set("#ItemNameLabel.Text", roleName);
             String pluginName = targetComponent.getPluginName();
             commandBuilder.set("#PackNameLabel.Text", pluginName);
         }
-        else if(itemID != null) {
+        else if (itemID != null) {
             commandBuilder.set("#Root.Visible", true);
+            commandBuilder.set("#ItemIconContainer.Visible", true);
+            commandBuilder.set("#NPCIcon.Visible", false);
+
             ItemStack itemStack = new ItemStack(itemID, 10, null);
             String itemSelector = "#ItemIconContainer[0] ";
-            commandBuilder.append("#ItemIconContainer", "Pages/DroppedItemSlot.ui");
             commandBuilder.set(itemSelector + "#ItemIcon.ItemId", itemStack.getItemId());
             commandBuilder.set(itemSelector + "#ItemIcon.Quantity", itemStack.getQuantity());
 
@@ -50,6 +57,10 @@ public class Tooltips extends CustomUIHud {
         super.update(false, commandBuilder);
     }
 
+    public String getNPCIconPath(String roleName) {
+        return "UI/Custom/Pages/Memories/npcs/" + roleName + ".png";
+    }
+
     public Tooltips(@Nonnull PlayerRef playerRef) {
         super(playerRef);
     }
@@ -57,5 +68,6 @@ public class Tooltips extends CustomUIHud {
     @Override
     protected void build(@Nonnull UICommandBuilder commandBuilder) {
         commandBuilder.append("Pages/Tooltips.ui");
+        commandBuilder.append("#ItemIconContainer", "Pages/DroppedItemSlot.ui");
     }
 }

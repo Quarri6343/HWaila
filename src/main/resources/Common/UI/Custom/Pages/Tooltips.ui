@@ -19,6 +19,15 @@ Group #Root {
         }
 
         Group {
+            LayoutMode: Middle;
+            Anchor: (Full: 0);
+
+          AssetImage #NPCIcon {
+              Anchor: (Height: 72, Width: 72);
+          }
+        }
+
+        Group {
         LayoutMode: Top;
         Padding: (Vertical: 10);
 
