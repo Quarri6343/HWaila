@@ -10,7 +10,6 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.util.Config;
 import com.quarri6343.hwaila.util.CustomHUDUtil;
 
 import javax.annotation.Nonnull;
@@ -36,33 +35,20 @@ public class ToggleTooltipsCommand extends AbstractPlayerCommand {
     protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef playerRef, @Nonnull World world) {
         Player playerComponent = store.getComponent(ref, Player.getComponentType());
         assert playerComponent != null;
-        WailaTargetComponent targetComponent = store.getComponent(ref, WailaTargetComponent.getComponentType());
-        assert targetComponent != null;
 
-        toggleTooltips(context, playerRef, targetComponent, playerComponent);
-
-        updateTooltipsConfig(playerRef, targetComponent);
+        toggleTooltips(context, playerRef, playerComponent);
     }
 
-    private void toggleTooltips(CommandContext context, PlayerRef playerRef, WailaTargetComponent targetComponent, Player playerComponent) {
+    private void toggleTooltips(CommandContext context, PlayerRef playerRef, Player playerComponent) {
+        WailaConfig config = HWaila.getInstance().getConfig().get();
         if (this.hideArg.provided(context)) {
-            targetComponent.setEnabled(false);
+            config.setTooltipEnabled(playerRef, false);
         } else if (this.showArg.provided(context)) {
             //in case the hud somehow disabled
             CustomHUDUtil.setCustomHUD(playerComponent, playerRef, HUD_IDENTIFIER, new Tooltips(playerRef));
-            targetComponent.setEnabled(true);
+            config.setTooltipEnabled(playerRef, true);
         } else {
-            targetComponent.setEnabled(!targetComponent.isEnabled());
+            config.setTooltipEnabled(playerRef, !config.isTooltipEnabled(playerRef));
         }
-    }
-
-    private static void updateTooltipsConfig(PlayerRef playerRef, WailaTargetComponent targetComponent) {
-        Config<WailaConfig> config = HWaila.getInstance().getConfig();
-        if (targetComponent.isEnabled()) {
-            config.get().tooltipBlackList.remove(playerRef.getUuid());
-        } else {
-            config.get().tooltipBlackList.add(playerRef.getUuid());
-        }
-        config.save();
     }
 }

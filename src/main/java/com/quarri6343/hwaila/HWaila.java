@@ -23,16 +23,10 @@ public class HWaila extends JavaPlugin {
     private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     private static HWaila instance;
-
-    private ComponentType<EntityStore, WailaTargetComponent> wailaTargetComponentType;
     private Config<WailaConfig> config = this.withConfig("Waila", WailaConfig.CODEC);;
 
     public static HWaila getInstance() {
         return instance;
-    }
-
-    public ComponentType<EntityStore, WailaTargetComponent> getWailaTargetComponentType() {
-        return this.wailaTargetComponentType;
     }
 
     public HWaila(@Nonnull JavaPluginInit init) {
@@ -49,9 +43,7 @@ public class HWaila extends JavaPlugin {
     protected void setup() {
         LOGGER.atInfo().log("Setting up plugin " + this.getName());
         this.getCommandRegistry().registerCommand(new ToggleTooltipsCommand(this.getName(), this.getManifest().getVersion().toString()));
-
-        wailaTargetComponentType = this.getEntityStoreRegistry().registerComponent(WailaTargetComponent.class, WailaTargetComponent::new);
-        getEntityStoreRegistry().registerSystem(new WailaTickSystem(wailaTargetComponentType));
+        getEntityStoreRegistry().registerSystem(new WailaTickSystem());
 
         getEventRegistry().registerGlobal(PlayerReadyEvent.class, event -> {
             Ref<EntityStore> ref = event.getPlayerRef();
@@ -82,21 +74,5 @@ public class HWaila extends JavaPlugin {
         Player player = ref.getStore().getComponent(ref, Player.getComponentType());
         PlayerRef playerRef = ref.getStore().getComponent(ref, PlayerRef.getComponentType());
         CustomHUDUtil.setCustomHUD(player, playerRef, HUD_IDENTIFIER, new Tooltips(playerRef));
-
-        boolean isTooltipEnabled = !config.get().tooltipBlackList.contains(playerRef.getUuid());
-        WailaTargetComponent component = ref.getStore().getComponent(ref, getWailaTargetComponentType());
-        if (component == null) {
-            ref.getStore().addComponent(ref, getWailaTargetComponentType(), new WailaTargetComponent(isTooltipEnabled));
-        } else {
-            component.setEnabled(isTooltipEnabled);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private void perPlayerShutdown(Ref<EntityStore> ref) {
-        WailaTargetComponent component = ref.getStore().getComponent(ref, getWailaTargetComponentType());
-        if (component != null) {
-            component.setEnabled(false);
-        }
     }
 }

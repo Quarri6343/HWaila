@@ -3,6 +3,7 @@ package com.quarri6343.hwaila;
 import com.hypixel.hytale.assetstore.AssetPack;
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.builtin.asseteditor.util.AssetPathUtil;
+import com.hypixel.hytale.protocol.packets.interface_.CustomUICommand;
 import com.hypixel.hytale.server.core.asset.AssetModule;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
@@ -14,31 +15,30 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
+import com.quarri6343.hwaila.api.Accessor;
 import com.quarri6343.hwaila.api.BlockAccessor;
 import com.quarri6343.hwaila.api.EntityAccessor;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class Tooltips extends CustomUIHud {
 
-    public void update(@Nonnull UICommandBuilder commandBuilder, WailaTargetComponent targetComponent) {
-        //TODO: accessor null handling
-        if (targetComponent.getAccessor() instanceof EntityAccessor entityAccessor
+    private static final Map<UUID, CustomUICommand[]> previousHUDCache = new HashMap<>();
+
+    public void update(@Nonnull UICommandBuilder commandBuilder, Accessor accessor) {
+        if (accessor instanceof EntityAccessor entityAccessor
             && entityAccessor.getEntity() instanceof NPCEntity npcEntity) {
 
             int roleIndex = npcEntity.getRoleIndex();
             String roleName = NPCPlugin.get().getName(roleIndex);
             String modelAssetID = npcEntity.toHolder().getComponent(ModelComponent.getComponentType()).getModel().getModelAssetId();
             String packName = ModelAsset.getAssetMap().getAssetPack(modelAssetID);
-            // TODO: move same target check to provider
-            if (targetComponent.getPreviousAccessor() instanceof EntityAccessor previousAccessor
-                    && previousAccessor.getEntity() instanceof NPCEntity previousEntity
-                    && previousEntity.getRoleIndex() == roleIndex) {
-                return;
-            }
 
             commandBuilder.set("#Root.Visible", true);
             commandBuilder.set("#ItemIconContainer.Visible", false);
@@ -51,16 +51,10 @@ public class Tooltips extends CustomUIHud {
             commandBuilder.set("#ItemNameLabel.Text", roleName);
             commandBuilder.set("#PackNameLabel.Text", packName);
         }
-        else if (targetComponent.getAccessor() instanceof BlockAccessor blockAccessor
+        else if (accessor instanceof BlockAccessor blockAccessor
                 && blockAccessor.getBlockType() != null
                 && blockAccessor.getBlockType().getItem() != null) {
             String itemID = blockAccessor.getBlockType().getItem().getId();
-
-            // TODO: move same target check to provider
-            if (targetComponent.getPreviousAccessor() instanceof BlockAccessor previousAccessor
-                    && Objects.equals(previousAccessor.getBlockType(),blockAccessor.getBlockType())) {
-                return;
-            }
 
             String blockKey = (String) blockAccessor.getBlockType().getData().getKey();
             String packName = AssetRegistry.getAssetStore(BlockType.class).getAssetMap().getAssetPack(blockKey);
@@ -86,10 +80,12 @@ public class Tooltips extends CustomUIHud {
         }
         else {
             commandBuilder.set("#Root.Visible", false);
+        }
 
-            if (targetComponent.getPreviousAccessor() == null) {
-                return;
-            }
+        boolean isUISame = Arrays.equals(previousHUDCache.get(getPlayerRef().getUuid()), commandBuilder.getCommands());
+        previousHUDCache.put(getPlayerRef().getUuid(), commandBuilder.getCommands());
+        if (isUISame) {
+            return; //don't send packet every frame
         }
 
         //never set clear flag to true (it will remove huds from other mods)

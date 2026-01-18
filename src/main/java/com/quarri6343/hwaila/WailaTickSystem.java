@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.modules.entity.component.ModelComponent;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.selector.Selector;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
@@ -26,17 +27,9 @@ import com.quarri6343.hwaila.api.EntityAccessorImpl;
 
 import javax.annotation.Nonnull;
 
-import java.util.Objects;
-
 import static com.quarri6343.hwaila.HWaila.HUD_IDENTIFIER;
 
 public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
-
-    private final ComponentType<EntityStore, WailaTargetComponent> componentType;
-
-    public WailaTickSystem(ComponentType<EntityStore, WailaTargetComponent> componentType) {
-        this.componentType = componentType;
-    }
 
     @Nonnull
     @Override
@@ -47,20 +40,16 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
     @Override
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> archetypeChunk, @Nonnull Store<EntityStore> store, @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         Ref<EntityStore> playerRef = archetypeChunk.getReferenceTo(index);
-        WailaTargetComponent component = store.getComponent(playerRef, componentType);
         Player playerComponent = store.getComponent(playerRef, Player.getComponentType());
         assert playerComponent != null;
+        PlayerRef playerRefComponent = store.getComponent(playerRef, PlayerRef.getComponentType());
+        assert playerRefComponent != null;
         if (!(CustomHUDUtil.getCustomHUD(playerComponent, HUD_IDENTIFIER) instanceof Tooltips tooltips)) {
             return;
         }
 
-        if (component == null) {
-            commandBuffer.addComponent(playerRef, componentType, component = new WailaTargetComponent(true));
-        }
-        if (!component.isEnabled()) {
-            component.setPreviousAccessor(component.getAccessor());
-            component.setAccessor(null);
-            tooltips.update(new UICommandBuilder(), component);
+        if (!HWaila.getInstance().getConfig().get().isTooltipEnabled(playerRefComponent)) {
+            tooltips.update(new UICommandBuilder(), null);
             return;
         }
 
@@ -75,21 +64,17 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
 
         runtime.tick(commandBuffer, playerRef, 0, 0);
 
-        Accessor accessorBeforeUpdate = component.getAccessor();
-        handleEntity(store, commandBuffer, component, runtime, playerRef);
-        if (Objects.equals(component.getAccessor(), accessorBeforeUpdate)) {
-            handleBlock(store, commandBuffer, component, runtime, playerRef);
+        AccessorHolder holder = new AccessorHolder();
+        handleEntity(store, commandBuffer, holder, runtime, playerRef);
+        if (holder.getAccessor() == null) {
+            handleBlock(store, commandBuffer, holder, runtime, playerRef);
         }
-        if (Objects.equals(component.getAccessor(), accessorBeforeUpdate)) {
-            component.setPreviousAccessor(component.getAccessor());
-            component.setAccessor(null);
-        }
-        tooltips.update(new UICommandBuilder(), component);
+        tooltips.update(new UICommandBuilder(), holder.getAccessor());
     }
 
     //TODO: use BlockAccessorHandler, EntityAccessorHandler to gather information with provider
 
-    private static void handleBlock(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
+    private static void handleBlock(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, AccessorHolder holder, Selector runtime, Ref<EntityStore> playerRef) {
         runtime.selectTargetBlocks(commandBuffer, playerRef, (x, y, z) -> {
             World world = commandBuffer.getExternalData().getWorld();
             ChunkStore chunkStore = world.getChunkStore();
@@ -97,17 +82,27 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
             WorldChunk chunk = chunkStore.getStore()
                     .getComponent(transformComponent.getChunkRef(), WorldChunk.getComponentType());
             BlockType blockType = chunk.getBlockType(x, y, z);
-            component.setPreviousAccessor(component.getAccessor());
-            component.setAccessor(new BlockAccessorImpl(store, playerRef, blockType));
+            holder.setAccessor(new BlockAccessorImpl(store, playerRef, blockType));
         });
     }
 
-    private static void handleEntity(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, WailaTargetComponent component, Selector runtime, Ref<EntityStore> playerRef) {
+    private static void handleEntity(Store<EntityStore> store, CommandBuffer<EntityStore> commandBuffer, AccessorHolder holder, Selector runtime, Ref<EntityStore> playerRef) {
         runtime.selectTargetEntities(commandBuffer, playerRef, ((entityRef, vector4d) -> {
             NPCEntity npcEntity = store.getComponent(entityRef, NPCEntity.getComponentType());
             //TODO: support player entity
-            component.setPreviousAccessor(component.getAccessor());
-            component.setAccessor(new EntityAccessorImpl(store, playerRef, npcEntity));
+            holder.setAccessor(new EntityAccessorImpl(store, playerRef, npcEntity));
         }), _ -> true);
+    }
+
+    private static class AccessorHolder {
+        private Accessor accessor = null;
+
+        public Accessor getAccessor() {
+            return accessor;
+        }
+
+        public void setAccessor(Accessor accessor) {
+            this.accessor = accessor;
+        }
     }
 }
