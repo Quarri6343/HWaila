@@ -39,9 +39,8 @@ public class WailaTickSystem extends EntityTickingSystem<EntityStore> {
 
     @Nonnull
     @Override
-    public Query getQuery() {
-//        return Query.and(Player.getComponentType()); don't work due to entitymodule depencency
-        return Query.and(componentType);
+    public Query<EntityStore> getQuery() {
+        return Query.and(Player.getComponentType());
     }
 
     @Override

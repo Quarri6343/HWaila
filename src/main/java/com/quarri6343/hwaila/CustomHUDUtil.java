@@ -1,5 +1,6 @@
 package com.quarri6343.hwaila;
 
+import com.buuz135.mhud.MultipleHUD;
 import com.hypixel.hytale.common.plugin.PluginIdentifier;
 import com.hypixel.hytale.common.semver.SemverRange;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -17,8 +18,6 @@ public class CustomHUDUtil {
 
     private static Class<?> multipleCustomUIHudClass;
     private static Method getCustomHudsMethod;
-    private static Method setCustomHudMethod;
-    private static Object multipleHUDInstance;
 
     //get methods across classloader
     static {
@@ -32,9 +31,7 @@ public class CustomHUDUtil {
                 multipleCustomUIHudClass = Class.forName("com.buuz135.mhud.MultipleCustomUIHud", true, thirdPartyLoader);
                 getCustomHudsMethod = multipleCustomUIHudClass.getMethod("getCustomHuds");
                 getCustomHudsMethod.setAccessible(true);
-                setCustomHudMethod = multipleHudClass.getMethod("setCustomHud", Player.class, PlayerRef.class, String.class, CustomUIHud.class);
-                multipleHUDInstance = multipleHudClass.getMethod("getInstance").invoke(null);
-            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
                 HWaila.getInstance().getLogger().atWarning().log("MHUD version mismatch!");
                 throw new RuntimeException();
             }
@@ -43,12 +40,7 @@ public class CustomHUDUtil {
 
     public static void setCustomHUD(Player player, PlayerRef playerRef, String multipleHUDIdentifier, CustomUIHud hud) {
         if (PluginManager.get().hasPlugin(PluginIdentifier.fromString("Buuz135:MultipleHUD"), SemverRange.WILDCARD)) {
-            try {
-                setCustomHudMethod.invoke(multipleHUDInstance, player, playerRef, multipleHUDIdentifier, hud);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                HWaila.getInstance().getLogger().atWarning().log("MHUD error!");
-                throw new RuntimeException();
-            }
+            MultipleHUD.getInstance().setCustomHud(player, playerRef, multipleHUDIdentifier, hud);
         }
         else {
             HudManager hudManager = player.getHudManager();

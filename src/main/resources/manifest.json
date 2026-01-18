@@ -11,10 +11,10 @@
     "Website": "com.quarri6343",
     "ServerVersion": "*",
     "Dependencies": {
-        
+        "Hytale:EntityModule": "*"
     },
     "OptionalDependencies": {
-        
+        "Buuz135:MultipleHUD": "*"
     },
     "DisabledByDefault": false,
     "Main": "com.quarri6343.hwaila.HWaila",
