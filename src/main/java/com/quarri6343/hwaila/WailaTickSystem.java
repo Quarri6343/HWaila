@@ -19,6 +19,7 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
+import com.quarri6343.hwaila.util.CustomHUDUtil;
 import com.quarri6343.hwaila.api.Accessor;
 import com.quarri6343.hwaila.api.BlockAccessorImpl;
 import com.quarri6343.hwaila.api.EntityAccessorImpl;

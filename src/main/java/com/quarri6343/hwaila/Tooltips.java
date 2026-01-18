@@ -1,6 +1,9 @@
 package com.quarri6343.hwaila;
 
+import com.hypixel.hytale.assetstore.AssetPack;
 import com.hypixel.hytale.assetstore.AssetRegistry;
+import com.hypixel.hytale.builtin.asseteditor.util.AssetPathUtil;
+import com.hypixel.hytale.server.core.asset.AssetModule;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.entity.entities.player.hud.CustomUIHud;
@@ -15,6 +18,8 @@ import com.quarri6343.hwaila.api.BlockAccessor;
 import com.quarri6343.hwaila.api.EntityAccessor;
 
 import javax.annotation.Nonnull;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public class Tooltips extends CustomUIHud {
@@ -39,6 +44,7 @@ public class Tooltips extends CustomUIHud {
             commandBuilder.set("#ItemIconContainer.Visible", false);
             commandBuilder.set("#NPCIcon.Visible", true);
 
+            commandBuilder.set("#NPCIcon.Visible", doesNPCIconExist(roleName));
             commandBuilder.set("#NPCIcon.AssetPath", getNPCIconPath(roleName));
 
             //TODO:npc name i18n
@@ -90,9 +96,19 @@ public class Tooltips extends CustomUIHud {
         super.update(false, commandBuilder);
     }
 
-    //TODO: do not display icon when it is null
     public String getNPCIconPath(String roleName) {
         return "UI/Custom/Pages/Memories/npcs/" + roleName + ".png";
+    }
+
+    //TODO:cache
+    public boolean doesNPCIconExist(String roleName) {
+        for (AssetPack pack : AssetModule.get().getAssetPacks()) {
+            Path fullPath = pack.getRoot().resolve(AssetPathUtil.DIR_COMMON).resolve(getNPCIconPath(roleName));
+            if (Files.exists(fullPath)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Tooltips(@Nonnull PlayerRef playerRef) {
